@@ -18,7 +18,7 @@ import java.util.Scanner;
 import java.sql.Date;
 
 
-public class QueryAV {
+public class QueryAZ {
 
 	Connection conn; 
 	final String host = "dbsvcs.cs.uno.edu"; 
@@ -26,18 +26,18 @@ public class QueryAV {
 	final String sID = "orcl";
 
 	// Three database connection link constructors
-	public QueryAV(	String host, 
+	public QueryAZ(	String host, 
 			int port, 
 			String sID, 
 			String username, 
 			String passwd) throws SQLException { 
 				conn = new DatabaseConnection(host, port, sID).getDatabaseConnection(username, passwd); 
 			}
-	public QueryAV(String username, String passwd) throws SQLException { 
+	public QueryAZ(String username, String passwd) throws SQLException { 
 		this.conn = new DatabaseConnection(host, port, sID).getDatabaseConnection(username, passwd); 
 	}
 
-	public QueryAV(Connection conn) throws SQLException { 
+	public QueryAZ(Connection conn) throws SQLException { 
 		this.conn = conn; 
 	}
 	// END OF connection constructors
@@ -74,7 +74,7 @@ public class QueryAV {
 		System.out.println("passcode: ");
 		String dbpassword = scanner.nextLine(); 
 		Connection conn = dbc.getDatabaseConnection(username, dbpassword); 
-		QueryAV sqObj = new QueryAV(conn);
+		QueryAZ sqObj = new QueryAZ(conn);
 		// END OF database connection process
 		
 		// Variables in MAIN
