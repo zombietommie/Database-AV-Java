@@ -108,7 +108,45 @@ public class QueryAZ {
 		return al;
 	}
 
-	public
+	/**
+	 * Query 4 setup
+	 * 
+	 * @param pos_code
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<String[]> queryFour(String pos_code) throws SQLException {
+		String str = "SELECT pos_code, sk_code " + "FROM Require " + "WHERE pos_code = ? "
+				+ "GROUP BY pos_code, sk_code ";
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		PreparedStatement pStmt = conn.prepareStatement(str);
+		pStmt.setString(1, pos_code);
+		ResultSet rs = pStmt.executeQuery();
+		while (rs.next()) {
+			String[] line = new String[2];
+			line[0] = rs.getString("pos_code");
+			line[1] = rs.getString("sk_code");
+			al.add(line);
+		}
+		return al;
+	}
+	
+	public ArrayList<String[]> queryFive(String per_id) throws SQLException {
+		String str = "SELECT title, sk_code " + 
+				"FROM Has_skill NATURAL JOIN Skill " + 
+				"WHERE per_id = ?;";
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		PreparedStatement pStmt = conn.prepareStatement(str);
+		pStmt.setString(1, per_id);
+		ResultSet rs = pStmt.executeQuery();
+		while (rs.next()) {
+			String[] line = new String[2];
+			line[0] = rs.getString("title");
+			line[1] = rs.getString("sk_code");
+			al.add(line);
+		}
+		return al;
+	}
 
 	/**
 	 * tester Run Query here!!!
@@ -173,6 +211,16 @@ public class QueryAZ {
 					ArrayList<String[]> str = sqObj.queryThree();
 					for (String[] line : str) {
 						System.out.printf("%s\t\t%s\n\n", line[0], line[1]);
+					}
+				} else if (choice == 4) {
+					System.out.println("Running Query 4");
+					System.out.println("List the required skills of a given pos_code in a readable format.");
+					System.out.println("Enter a position code: ");
+					String ans = getAnswerString();
+					System.out.println("pos_code\tsk_code");
+					ArrayList<String[]> str = sqObj.queryFour(ans);
+					for (String[] line : str) {
+						System.out.printf("%s\t\t%s\t\t", line[0], line[1]);
 					}
 				}
 				// This else is to check if use want to QUIT
