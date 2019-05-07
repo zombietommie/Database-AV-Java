@@ -84,7 +84,7 @@ public class QueryAZ {
 	}
 
 	/**
-	 * Query 3 setup TODO: fix with clause issue
+	 * Query 3 setup 
 	 * 
 	 * @return
 	 * @throws SQLException
@@ -272,17 +272,17 @@ public class QueryAZ {
 	}
 	
 	/**
-	 * Query 7 setup						//TODO: Need fixing
+	 * Query 7 setup		
 	 * @param start_date
 	 * @param end_date
 	 * @return
 	 * @throws SQLException
 	 */
 	public ArrayList<String[]> querySeven(String start_date, String end_date) throws SQLException {
-		String str = "SELECT item_num, SUM(price), \n" + 
-				"	FROM	 Sales\n" + 
-				"	WHERE start_date = ? and end_date = ?\n" + 
-				"	GROUP BY DESC ";
+		String str = "SELECT item_num, sales_quantity, (price * sales_quantity) as total_sales\n" + 
+				"FROM Inventory NATURAL JOIN Sales\n" + 
+				"WHERE sales_date BETWEEN '1-Jan-2018' and '31-Dec-2019'\n" + 
+				"ORDER BY total_sales DESC\n";
 		ArrayList<String[]> al = new ArrayList<String[]>();
 		PreparedStatement pStmt = conn.prepareStatement(str);
 		pStmt.setString(1, start_date);
@@ -439,7 +439,7 @@ public class QueryAZ {
 					for (String[] line : str) {
 						System.out.printf("%s\t\t%s\n\n", line[0], line[1]);
 					}
-				} else if (choice == 7) {			//TODO: Needs fixing
+				} else if (choice == 7) {		
 					System.out.println("Running Query 7");
 					System.out.println("List the total number and the total sales ($) of every item in a given period of time (start date, end date) in AZ in the descending order of sales.");
 					System.out.println("Enter Start date (format-> dd-MON-yy ex: 04-NOV-18)");
