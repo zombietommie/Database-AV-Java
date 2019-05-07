@@ -90,12 +90,70 @@ public class QueryAZ {
 	 * @throws SQLException
 	 */
 	public ArrayList<String[]> queryThree() throws SQLException {
-		String str = "WITH salary AS (\n" + "WITH salary AS (\n" + "SELECT  store_id, AVG (pay_rate) AS avg_pay\n"
-				+ "FROM Job NATURAL JOIN Store\n" + "WHERE pay_type = 'salary'\n" + "GROUP BY store_id\n" + "),\n"
-				+ "\n" + "hours AS (\n" + "SELECT store_id, AVG (pay_rate*1920) AS avg_pay "
-				+ "	FROM Job NATURAL JOIN Store " + "WHERE pay_type = ‘wage’ " + "GROUP BY store_id " + ") "
-				+ "labor_cost  AS ( " + "SELECT * FROM salary " + "UNION " + "SELECT * FROM hours " + ") "
-				+ "SELECT store_id, avg_pay " + "FROM labor_cost " + "GROUP BY store_id " + "ORDER BY avg_pay DESC ";
+		String str = "SELECT\n" + 
+				"    \"A1\".\"STORE_ID\"   \"STORE_ID\",\n" + 
+				"    \"A1\".\"AVG_PAY\"    \"AVG_PAY\"\n" + 
+				"FROM\n" + 
+				"    (\n" + 
+				"        ( SELECT\n" + 
+				"            \"A4\".\"STORE_ID\"   \"STORE_ID\",\n" + 
+				"            \"A4\".\"AVG_PAY\"    \"AVG_PAY\"\n" + 
+				"        FROM\n" + 
+				"            (\n" + 
+				"                SELECT\n" + 
+				"                    \"A5\".\"STORE_ID\" \"STORE_ID\",\n" + 
+				"                    AVG(\"A5\".\"PAY_RATE\") \"AVG_PAY\"\n" + 
+				"                FROM\n" + 
+				"                    (\n" + 
+				"                        SELECT\n" + 
+				"                            \"A6\".\"STORE_ID\"   \"STORE_ID\",\n" + 
+				"                            \"A7\".\"PAY_RATE\"   \"PAY_RATE\",\n" + 
+				"                            \"A7\".\"PAY_TYPE\"   \"PAY_TYPE\"\n" + 
+				"                        FROM\n" + 
+				"                            \"JTTRAN10\".\"JOB\"     \"A7\",\n" + 
+				"                            \"JTTRAN10\".\"STORE\"   \"A6\"\n" + 
+				"                        WHERE\n" + 
+				"                            \"A7\".\"STORE_ID\" = \"A6\".\"STORE_ID\"\n" + 
+				"                    ) \"A5\"\n" + 
+				"                WHERE\n" + 
+				"                    \"A5\".\"PAY_TYPE\" = 'salary'\n" + 
+				"                GROUP BY\n" + 
+				"                    \"A5\".\"STORE_ID\"\n" + 
+				"            ) \"A4\"\n" + 
+				"        )\n" + 
+				"        UNION\n" + 
+				"        ( SELECT\n" + 
+				"            \"A3\".\"STORE_ID\"   \"STORE_ID\",\n" + 
+				"            \"A3\".\"AVG_PAY\"    \"AVG_PAY\"\n" + 
+				"        FROM\n" + 
+				"            (\n" + 
+				"                SELECT\n" + 
+				"                    \"A8\".\"STORE_ID\" \"STORE_ID\",\n" + 
+				"                    AVG(\"A8\".\"PAY_RATE\" * 1920) \"AVG_PAY\"\n" + 
+				"                FROM\n" + 
+				"                    (\n" + 
+				"                        SELECT\n" + 
+				"                            \"A9\".\"STORE_ID\"    \"STORE_ID\",\n" + 
+				"                            \"A10\".\"PAY_RATE\"   \"PAY_RATE\",\n" + 
+				"                            \"A10\".\"PAY_TYPE\"   \"PAY_TYPE\"\n" + 
+				"                        FROM\n" + 
+				"                            \"JTTRAN10\".\"JOB\"     \"A10\",\n" + 
+				"                            \"JTTRAN10\".\"STORE\"   \"A9\"\n" + 
+				"                        WHERE\n" + 
+				"                            \"A10\".\"STORE_ID\" = \"A9\".\"STORE_ID\"\n" + 
+				"                    ) \"A8\"\n" + 
+				"                WHERE\n" + 
+				"                    \"A8\".\"PAY_TYPE\" = 'wage'\n" + 
+				"                GROUP BY\n" + 
+				"                    \"A8\".\"STORE_ID\"\n" + 
+				"            ) \"A3\"\n" + 
+				"        )\n" + 
+				"    ) \"A1\"\n" + 
+				"GROUP BY\n" + 
+				"    \"A1\".\"STORE_ID\",\n" + 
+				"    \"A1\".\"AVG_PAY\"\n" + 
+				"ORDER BY\n" + 
+				"    \"A1\".\"AVG_PAY\" DESC ";
 		ArrayList<String[]> al = new ArrayList<String[]>();
 		Statement stmt = conn.createStatement();
 		ResultSet rs = stmt.executeQuery(str);
@@ -131,10 +189,16 @@ public class QueryAZ {
 		return al;
 	}
 	
+	/**
+	 * Query 5 setup
+	 * @param per_id
+	 * @return
+	 * @throws SQLException
+	 */
 	public ArrayList<String[]> queryFive(String per_id) throws SQLException {
 		String str = "SELECT title, sk_code " + 
 				"FROM Has_skill NATURAL JOIN Skill " + 
-				"WHERE per_id = ?;";
+				"WHERE per_id = ?";
 		ArrayList<String[]> al = new ArrayList<String[]>();
 		PreparedStatement pStmt = conn.prepareStatement(str);
 		pStmt.setString(1, per_id);
@@ -143,6 +207,137 @@ public class QueryAZ {
 			String[] line = new String[2];
 			line[0] = rs.getString("title");
 			line[1] = rs.getString("sk_code");
+			al.add(line);
+		}
+		return al;
+	}
+	
+	/**
+	 * Query 6 setup
+	 * @param pos_code
+	 * @param per_id
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<String[]> querySix(String pos_code, String per_id) throws SQLException {
+		String str = "( SELECT\n" + 
+				"    \"A3\".\"SK_CODE\"   \"SK_CODE\",\n" + 
+				"    \"A3\".\"TITLE\"     \"TITLE\"\n" + 
+				"FROM\n" + 
+				"    (\n" + 
+				"        SELECT\n" + 
+				"            \"A4\".\"SK_CODE\"    \"SK_CODE\",\n" + 
+				"            \"A5\".\"POS_CODE\"   \"POS_CODE\",\n" + 
+				"            \"A4\".\"TITLE\"      \"TITLE\"\n" + 
+				"        FROM\n" + 
+				"            \"JTTRAN10\".\"REQUIRE\"   \"A5\",\n" + 
+				"            \"JTTRAN10\".\"SKILL\"     \"A4\"\n" + 
+				"        WHERE\n" + 
+				"            \"A5\".\"SK_CODE\" = \"A4\".\"SK_CODE\"\n" + 
+				"    ) \"A3\"\n" + 
+				"WHERE\n" + 
+				"    \"A3\".\"POS_CODE\" = ?\n" + 
+				")\n" + 
+				"MINUS\n" + 
+				"( SELECT\n" + 
+				"    \"A2\".\"SK_CODE\"   \"SK_CODE\",\n" + 
+				"    \"A2\".\"TITLE\"     \"TITLE\"\n" + 
+				"FROM\n" + 
+				"    (\n" + 
+				"        SELECT\n" + 
+				"            \"A6\".\"SK_CODE\"   \"SK_CODE\",\n" + 
+				"            \"A7\".\"PER_ID\"    \"PER_ID\",\n" + 
+				"            \"A6\".\"TITLE\"     \"TITLE\"\n" + 
+				"        FROM\n" + 
+				"            \"JTTRAN10\".\"HAS_SKILL\"   \"A7\",\n" + 
+				"            \"JTTRAN10\".\"SKILL\"       \"A6\"\n" + 
+				"        WHERE\n" + 
+				"            \"A7\".\"SK_CODE\" = \"A6\".\"SK_CODE\"\n" + 
+				"    ) \"A2\"\n" + 
+				"WHERE\n" + 
+				"    \"A2\".\"PER_ID\" = ?\n" + 
+				")" ;
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		PreparedStatement pStmt = conn.prepareStatement(str);
+		pStmt.setString(1, pos_code);
+		pStmt.setString(2, per_id);
+		ResultSet rs = pStmt.executeQuery();
+		while (rs.next()) {
+			String[] line = new String[2];
+			line[0] = rs.getString("sk_code");
+			line[1] = rs.getString("title");
+			al.add(line);
+		}
+		return al;
+	}
+	
+	/**
+	 * Query 7 setup						//TODO: Need fixing
+	 * @param start_date
+	 * @param end_date
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<String[]> querySeven(String start_date, String end_date) throws SQLException {
+		String str = "SELECT item_num, SUM(price), \n" + 
+				"	FROM	 Sales\n" + 
+				"	WHERE start_date = ? and end_date = ?\n" + 
+				"	GROUP BY DESC ";
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		PreparedStatement pStmt = conn.prepareStatement(str);
+		pStmt.setString(1, start_date);
+		pStmt.setString(2, end_date);
+		ResultSet rs = pStmt.executeQuery();
+		while (rs.next()) {
+			String[] line = new String[2];
+			line[0] = rs.getString("item_num");
+			line[1] = Float.toString(rs.getFloat("Sum(price)"));
+			al.add(line);
+		}
+		return al;
+	}
+	
+	/**
+	 * Query 8 setup
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<String[]> queryEight() throws SQLException {
+		String str = "WITH profit_amount as\n" + 
+				"(SELECT item_num, item_title, SUM(price-(unit_cost * quantity)) as profit\n" + 
+				"FROM Inventory NATURAL JOIN Purchase\n" + 
+				"GROUP BY item_num, item_title),\n" + 
+				"\n" + 
+				"MA as\n" + 
+				"(SELECT MAX(profit) as maxprofit FROM profit_amount)\n" + 
+				"\n" + 
+				"SELECT item_num, item_title, profit\n" + 
+				"FROM profit_amount\n" + 
+				"WHERE profit = (SELECT maxprofit FROM MA)";
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(str);
+		while (rs.next()) {
+			String[] line = new String[3];
+			line[0] = rs.getString("item_num");
+			line[1] = rs.getString("item_title");
+			line[2] = Float.toString(rs.getFloat("profit"));
+			al.add(line);
+		}
+		return al;
+	}
+	
+	public ArrayList<String[]> queryNine() throws SQLException {
+		String str = "SELECT item_title, item_num\n" + 
+				"FROM Inventory\n" + 
+				"WHERE quantity < min_level";
+		ArrayList<String[]> al = new ArrayList<String[]>();
+		Statement stmt = conn.createStatement();
+		ResultSet rs = stmt.executeQuery(str);
+		while (rs.next()) {
+			String[] line = new String[2];
+			line[0] = rs.getString("item_title");
+			line[1] = rs.getString("item_num");
 			al.add(line);
 		}
 		return al;
@@ -207,7 +402,7 @@ public class QueryAZ {
 					System.out.println("Running Query 3");
 					System.out.println(
 							"List the average annual pay (the salary or wage rates multiplying by 1920 hours) of each stores in descending order");
-					System.out.println("fac_id\t\tfac_name\t\t\tavg_pay");
+					System.out.println("store_id\t\tstore_name\t\t\tavg_pay");
 					ArrayList<String[]> str = sqObj.queryThree();
 					for (String[] line : str) {
 						System.out.printf("%s\t\t%s\n\n", line[0], line[1]);
@@ -222,6 +417,60 @@ public class QueryAZ {
 					for (String[] line : str) {
 						System.out.printf("%s\t\t%s\t\t", line[0], line[1]);
 					}
+				} else if (choice == 5) {
+					System.out.println("Running Query 5");
+					System.out.println("Given a person’s identifier, list this person’s skills in a readable format");
+					System.out.println("Enter a person ID: ");
+					String ans = getAnswerString();
+					System.out.println("title\t\tsk_code");
+					ArrayList<String[]> str = sqObj.queryFive(ans);
+					for (String[] line : str) {
+						System.out.printf("%s\t\t%s",line[0], line[1]);
+					}
+				} else if (choice == 6) {
+					System.out.println("Running Query 6");
+					System.out.println("Given a person’s identifier, list a person’s missing skills for a specific pos_code in a readable format.");
+					System.out.println("Enter a position code: ");
+					String ans1 = getAnswerString();
+					System.out.println("Enter a persion ID: ");
+					String ans2 = getAnswerString();
+					System.out.println("sk_code\t\ttitle");
+					ArrayList<String[]> str = sqObj.querySix(ans1, ans2);
+					for (String[] line : str) {
+						System.out.printf("%s\t\t%s\n\n", line[0], line[1]);
+					}
+				} else if (choice == 7) {			//TODO: Needs fixing
+					System.out.println("Running Query 7");
+					System.out.println("List the total number and the total sales ($) of every item in a given period of time (start date, end date) in AZ in the descending order of sales.");
+					System.out.println("Enter Start date (format-> dd-MON-yy ex: 04-NOV-18)");
+					String ans1 = getAnswerString();
+					System.out.println("Enter End date (format-> dd-MON-yy ex: 04-NOV-18)");
+					String ans2 = getAnswerString();
+					System.out.println("item_num\t\tSUM(price)");
+					ArrayList<String[]> str = sqObj.querySeven(ans1, ans2);
+					for (String[] line : str) {
+						System.out.printf("%s\t\t%s\n\n", line[0],line[1]);
+					}
+				} else if (choice == 8) {
+					System.out.println("Running Query 8");
+					System.out.println("List the item_num, its title and the total profit that made the biggest profit for AZ in 2018.");
+					System.out.println("item_num\t\titem_name\t\tprofit");
+					ArrayList<String[]> str = sqObj.queryEight();
+					for (String[] line : str) {
+						System.out.printf("%s\t\t\t%s\t\t%s\n\n", line[0],line[1],line[2]);
+					}
+				} else if (choice == 9) {
+					System.out.println("Running Query 9");
+					System.out.println("Show the items for which the inventory is below the minimum level in AZ system.");
+					System.out.println("item_title\t\titem_num\n\n");
+					ArrayList<String[]> str = sqObj.queryNine();
+					for (String[] line : str) {
+						System.out.printf("%s\t\t\t%s\n\n",line[0],line[1]);
+					}
+				} else if (choice == 10) {
+					System.out.println("This query is for GV, select another.");
+				} else if (choice == 11) {
+					System.out.println("This query is for GV, select another.");
 				}
 				// This else is to check if use want to QUIT
 				else if (choice == 0) {
